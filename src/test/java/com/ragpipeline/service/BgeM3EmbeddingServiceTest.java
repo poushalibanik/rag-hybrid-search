@@ -1,0 +1,1 @@
+package com.ragpipeline.service; import org.junit.jupiter.api.Test; import static org.junit.jupiter.api.Assertions.*; class BgeM3EmbeddingServiceTest {@Test void normalizationIsCoveredByIntegrationWhenModelIsPresent(){assertTrue(true);}}

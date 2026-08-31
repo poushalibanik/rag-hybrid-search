@@ -1,0 +1,16 @@
+
+# Local ML models
+models/
+
+# Gradle generated files
+.gradle/
+build/
+
+# IntelliJ
+.idea/
+
+# macOS
+.DS_Store
+
+# Secrets
+.env

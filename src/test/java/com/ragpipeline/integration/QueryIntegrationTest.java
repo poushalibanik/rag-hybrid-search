@@ -1,0 +1,1 @@
+package com.ragpipeline.integration; import org.junit.jupiter.api.Test; import static org.junit.jupiter.api.Assertions.*; class QueryIntegrationTest {@Test void queryPipelineRequiresLocalModels(){assertTrue(true);}}

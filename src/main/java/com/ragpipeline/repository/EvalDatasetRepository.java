@@ -1,0 +1,1 @@
+package com.ragpipeline.repository;import com.ragpipeline.model.EvalCase;import org.springframework.data.jpa.repository.JpaRepository;import java.util.UUID;public interface EvalDatasetRepository extends JpaRepository<EvalCase,UUID>{}

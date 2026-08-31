@@ -1,0 +1,4 @@
+package com.ragpipeline.model;
+import jakarta.persistence.*; import lombok.*; import java.time.Instant; import java.util.UUID;
+@Entity @Table(name="chunks", uniqueConstraints=@UniqueConstraint(columnNames={"document_id","chunk_index"})) @Getter @Setter @NoArgsConstructor @AllArgsConstructor @Builder
+public class Chunk { @Id @GeneratedValue private UUID id; @ManyToOne(fetch=FetchType.LAZY) @JoinColumn(name="document_id",nullable=false) private Document document; @Column(nullable=false,columnDefinition="TEXT") private String content; @Column(nullable=false) private int chunkIndex; private String sectionHeading; @Column(nullable=false) private String chunkingStrategy; private int charCount; private Integer tokenEstimate; private Boolean isDuplicate; private String qdrantPointId; private Instant createdAt; @PrePersist void created(){createdAt=Instant.now(); if(isDuplicate==null)isDuplicate=false;} }

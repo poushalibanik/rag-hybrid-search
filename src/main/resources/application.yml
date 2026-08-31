@@ -1,0 +1,32 @@
+spring:
+  application: { name: rag-hybrid-search }
+  datasource: { url: jdbc:postgresql://localhost:5432/ragdb, username: raguser, password: ragpassword }
+  jpa: { hibernate: { ddl-auto: validate } }
+  flyway: { enabled: true, baseline-on-migrate: true }
+  kafka:
+    bootstrap-servers: localhost:9092
+    consumer:
+      group-id: rag-ingestion-group
+      auto-offset-reset: earliest
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
+      properties:
+        spring.json.trusted.packages: com.ragpipeline.model
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+qdrant: { host: localhost, port: 6334, collection-name: rag_chunks, dense-dimension: 1024, on-disk: false }
+ollama: { base-url: http://localhost:11434, model: qwen3:8b, max-tokens: 1500, temperature: 0.1 }
+bge:
+  m3: { model-path: ./models/bge-m3/model.onnx, tokenizer-path: ./models/bge-m3/tokenizer.json, max-length: 8192 }
+  reranker: { model-path: ./models/bge-reranker-v2-m3/model.onnx, tokenizer-path: ./models/bge-reranker-v2-m3/tokenizer.json, max-length: 512 }
+rag:
+  chunking: { default-strategy: RECURSIVE, fixed-size: 512, overlap: 64 }
+  retrieval: { hybrid-top-k: 20, reranker-top-k: 5, dense-weight: 0.7, sparse-weight: 0.3 }
+  generation:
+    max-context-chunks: 3
+    min-reranker-score: 0.30
+    relative-reranker-score: 0.35
+    citation-verification-enabled: true
+kafka: { topics: { ingestion-requests: rag.ingestion.requests, ingestion-results: rag.ingestion.results } }
+server: { port: 8080 }
