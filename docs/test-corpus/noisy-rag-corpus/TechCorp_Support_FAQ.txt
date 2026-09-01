@@ -1,0 +1,14 @@
+TECHCORP CUSTOMER SUPPORT FAQ — ARCHIVED ANSWERS
+Last reviewed: March 2024
+
+Refund requests
+Support agents often receive questions about the 14-day refund window. The current, binding policy is maintained in the Internal Policy & Engineering Handbook. This FAQ is not an authority for refund decisions.
+
+Annual-plan discussions
+Customers sometimes use the word “cancellation” when they mean a refund request. Annual-plan cancellation, partial refunds, and full refunds can have different eligibility rules. Support must verify the customer’s plan and purchase date before responding.
+
+Incident communications
+For a customer-reported outage, Support opens a ticket and shares the public status page. Support agents do not classify SEV levels, set PagerDuty response times, or notify executives.
+
+Password help
+Support cannot reset an employee password. Employee authentication requirements and account lockout rules are owned by IT Security.

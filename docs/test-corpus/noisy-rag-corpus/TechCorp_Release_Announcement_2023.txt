@@ -1,0 +1,8 @@
+TECHCORP ENGINEERING ANNOUNCEMENT — 2023 RELEASE PROCESS
+Historical reference only. Superseded by the current Internal Policy & Engineering Handbook.
+
+In 2023, TechCorp used a 20 percent canary deployment for one hour. Production releases were routinely scheduled on Fridays after 18:00 UTC.
+
+The old runbook described a 10-minute acknowledgement target for production alerts. This historical announcement must not be used to determine current deployment, on-call, or incident-response requirements.
+
+For current policy, consult the TechCorp Internal Policy & Engineering Handbook.

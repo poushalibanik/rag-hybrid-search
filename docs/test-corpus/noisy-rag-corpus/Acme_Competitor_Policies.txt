@@ -1,0 +1,8 @@
+ACME CLOUD — PUBLIC SUBSCRIPTION TERMS
+Effective date: July 2025
+
+Acme Cloud customers may request a full refund within 30 calendar days of purchase. Refunds approved by Acme Cloud are processed within 3 business days.
+
+Acme Cloud administrator accounts are locked after 10 unsuccessful login attempts and automatically unlock after 60 minutes. These terms apply only to Acme Cloud customers and do not describe TechCorp policy.
+
+Acme Cloud production releases are permitted every day between 08:00 and 20:00 UTC. Canary releases use 10 percent of production traffic for 15 minutes.

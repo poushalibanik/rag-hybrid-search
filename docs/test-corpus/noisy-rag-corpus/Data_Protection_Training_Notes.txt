@@ -1,0 +1,7 @@
+DATA PROTECTION TRAINING NOTES
+
+Personal data retention is a broad topic. Different companies retain data for different periods based on contracts, local law, and backup requirements. A grace period may allow customers to export data before deletion.
+
+Monthly database snapshots are sometimes retained for multiple years for audit or financial-record purposes. Backup retention does not necessarily equal production personal-data retention.
+
+When answering a company-specific privacy question, use the named company’s current policy rather than generic training material.
