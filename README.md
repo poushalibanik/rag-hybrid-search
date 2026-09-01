@@ -88,7 +88,7 @@ flowchart TB
 
 ## Low-level component diagram
 
-![Low-level component architecture diagram](docs/images/low-level-component-architecture.svg)
+![Low-level component architecture diagram](docs/images/low-level-component-architecture.png)
 
 <!-- Editable Mermaid source for the rendered diagram:
 ```mermaid
