@@ -21,59 +21,6 @@ A local Java 21 / Spring Boot Retrieval-Augmented Generation (RAG) application. 
 
 ![High-level architecture diagram](docs/images/high-level-architecture.png)
 
-<!-- Editable Mermaid source for the rendered diagram:
-```mermaid
-flowchart TB
-    User[User / Client]
-    Swagger[Swagger UI]
-
-    subgraph App["Spring Boot RAG Application"]
-        API[REST Controllers]
-        Ingest[Document Ingestion Service]
-        Query[Query Service]
-        Eval[Evaluation Service]
-        Parse[Apache Tika Parser]
-        Meta[Metadata and Authority Classification]
-        Jobs[Ingestion Job Tracking]
-        Chunk[Chunking Service<br/>Recursive / Fixed / Semantic]
-        Embed[BGE-M3 Embedding Service<br/>Dense + Sparse]
-        Retrieve[Hybrid Retrieval Service<br/>Dense / Sparse / RRF]
-        Rerank[BGE Reranker]
-        Generate[Generation Service]
-        Verify[Citation Verification]
-    end
-
-    subgraph LocalServices["Local Infrastructure"]
-        Postgres[(PostgreSQL<br/>Documents · Chunks · Jobs · Evaluation Cases)]
-        Kafka[(Kafka)]
-        Qdrant[(Qdrant<br/>Dense + Sparse Vectors)]
-        Ollama[Ollama / Qwen3]
-    end
-
-    User --> Swagger
-    User --> API
-    Swagger --> API
-    API -->|Upload document| Ingest
-    Ingest --> Parse --> Meta --> Postgres
-    Ingest --> Jobs --> Postgres
-    Ingest -->|Queue ingestion job| Kafka
-    Kafka -->|Consume job| Chunk
-    Chunk -->|Chunk metadata| Postgres
-    Chunk --> Embed -->|Vectors + source metadata| Qdrant
-    Embed -->|Update job status| Postgres
-    API -->|Question| Query
-    Query --> Embed -->|Query vectors| Retrieve
-    Retrieve -->|Authority-aware hybrid search| Qdrant
-    Retrieve --> Rerank --> Generate --> Ollama
-    Generate --> Verify -->|Cited answer + confidence| API
-    API --> Eval
-    Eval --> Retrieve
-    Eval --> Rerank
-    Eval --> Ollama
-    Eval --> Postgres
-```
--->
-
 ### How the flow works
 
 1. **Upload:** A client uploads a document through Swagger UI or `POST /api/v1/documents/ingest`.
@@ -85,102 +32,6 @@ flowchart TB
 7. **Rerank and generate:** The BGE reranker selects the strongest context. Qwen3, running through Ollama, produces an answer grounded only in that context.
 8. **Cite or abstain:** The application verifies citations against retrieved chunks and returns the answer, sources, retrieved chunks, and confidence. If no chunk clears the relevance gate, it returns `I do not know based on the indexed documents.`
 9. **Evaluate:** The evaluation APIs use the stored test cases to compare retrieval modes and measure MRR@5, Recall@20, correctness, faithfulness, and citation accuracy.
-
-## Low-level component diagram
-
-![Low-level component architecture diagram](docs/images/low-level-component-architecture.png)
-
-<!-- Editable Mermaid source for the rendered diagram:
-```mermaid
-flowchart LR
-    subgraph Web["Web layer"]
-        DC[DocumentController]
-        QC[QueryController]
-        EC[EvalController]
-        GEH[GlobalExceptionHandler]
-    end
-
-    subgraph Ingestion["Ingestion components"]
-        DIS[DocumentIngestionService]
-        IP[IngestionProducer]
-        IC[IngestionConsumer]
-        CS[ChunkingService]
-        ES[EmbeddingService]
-    end
-
-    subgraph Querying["Query components"]
-        QHRS[QdrantHybridRetrievalService]
-        BGE[BgeM3EmbeddingService]
-        RR[BgeRerankerService]
-        GS[GenerationService]
-        CVS[CitationVerificationService]
-    end
-
-    subgraph Evaluation["Evaluation components"]
-        EVS[EvalService]
-    end
-
-    subgraph Persistence["Persistence layer"]
-        DR[DocumentRepository]
-        CR[ChunkRepository]
-        JR[IngestionJobRepository]
-        ER[EvalDatasetRepository]
-        PG[(PostgreSQL)]
-    end
-
-    subgraph Runtime["External runtime dependencies"]
-        KP[Kafka Producer]
-        KC[Kafka Consumer]
-        QCDB[Qdrant Client]
-        ONNX[ONNX Sessions + Tokenizers]
-        LLM[ChatLanguageModel<br/>Ollama / Qwen3]
-    end
-
-    DC --> DIS
-    DC --> ES
-    DC --> DR
-    DC --> JR
-    QC --> QHRS
-    QC --> GS
-    EC --> EVS
-    GEH -.handles.-> DC
-    GEH -.handles.-> QC
-    GEH -.handles.-> EC
-
-    DIS --> DR
-    DIS --> JR
-    DIS --> IP --> KP
-    KC --> IC
-    IC --> DIS
-    IC --> CS --> BGE
-    IC --> CR
-    IC --> ES
-    ES --> CR
-    ES --> BGE
-    ES --> QCDB
-
-    QHRS --> BGE
-    QHRS --> RR
-    QHRS --> CR
-    QHRS --> ES
-    QHRS --> QCDB
-    GS --> LLM
-    GS --> CVS --> RR
-    EVS --> ER
-    EVS --> CR
-    EVS --> QHRS
-    EVS --> GS
-    EVS --> RR
-    EVS --> LLM
-
-    DR --> PG
-    CR --> PG
-    JR --> PG
-    ER --> PG
-    BGE --> ONNX
-    RR --> ONNX
-```
--->
 
 ## Requirements
 
@@ -379,12 +230,14 @@ curl -X POST "http://localhost:8080/api/v1/eval/retrieval?retrievalMode=HYBRID"
 
 The current TechCorp test dataset contains 20 cases. Previous baseline results were `MRR@5 = 1.0` and `Recall@20 = 1.0`; treat these as a small controlled-corpus baseline, not proof of general production quality.
 
-## Docker files
+## Future enhancements
 
-Yes, keep `Dockerfile` and `docker-compose.yml` in the repository even when you run services locally. They are useful for other developers, CI environments, and future deployment. They do not affect the non-Docker workflow unless you run Docker commands.
-
-Do not commit downloaded model files, local databases, Gradle build output, or secrets. Keep credentials in environment-specific configuration for real deployments.
-
-## Production note
-
-This is suitable for local development, demonstrations, and portfolio use. Before production deployment, add authentication/authorization, external secret management, HTTPS, upload limits and scanning, monitoring/alerting, backups, data-retention controls, broader automated tests, and a transactional Kafka/database delivery design.
+- Authentication and role-based authorization.
+- Secrets outside `application.yml` — the database password is currently hardcoded.
+- File-size/type limits, antivirus scanning, and upload rate limits.
+- DTOs instead of returning JPA entities directly from APIs.
+- Production observability: structured logs, metrics, alerts, and tracing.
+- Kafka transactional outbox/idempotent consumer design for database–Kafka consistency.
+- Better automated test coverage, including failure/retry, duplicate-upload, and no-answer integration tests.
+- Database/Qdrant backups, retention rules, encryption, and PII controls.
+- Deployment configuration: HTTPS, health checks, resource limits, environment profiles, and CI/CD.
