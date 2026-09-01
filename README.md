@@ -180,7 +180,25 @@ The expected result is **three failed attempts**, followed by a manual unlock ap
 
 #### Scenario 4 — privacy terminology ambiguity
 
-This scenario tests a question about TechCorp customer-data retention against generic privacy/training material and checks that the response uses the authoritative `4.1 Customer Data Retention` section. The query was tested manually; add its result screenshot here when available to complete the visual evidence.
+Question: *According to TechCorp policy, how long is customer personal data retained after account closure and when is PII deleted?*
+
+This scenario tests customer-data retention terminology against generic privacy/training material. The expected authoritative result is that data is retained for **90 days after account closure**, and personally identifiable information (PII) is permanently deleted from production systems **within 30 days after that 90-day grace period**. All retrieval modes selected the authoritative `4.1 Customer Data Retention` section.
+
+![Scenario 4 — privacy terminology ambiguity](docs/images/scenario-4-privacy-terminology-ambiguity.png)
+
+### Core functional-answering scenarios
+
+#### Supported policy questions with verified citations
+
+This test exercises multiple distinct TechCorp handbook sections through `HYBRID` retrieval: password requirements, employee versus admin account lockout handling, on-call escalation, SEV-1 incident response, and customer data retention. Each response is expected to cite the applicable handbook section and return a high citation-verification score.
+
+![Core policy retrieval and citation checks](docs/images/functional-policy-retrieval-and-citations.png)
+
+#### Supported answer versus safe abstention
+
+This test first asks a supported deployment-policy question and receives the authoritative deployment window and canary settings. It then asks about a contractor work-from-home allowance, which is not present in the indexed documents. The expected safe result is: `I do not know based on the indexed documents.`
+
+![Supported answer and safe abstention](docs/images/supported-answer-and-safe-abstention.png)
 
 Run the automated test suite before committing changes:
 
