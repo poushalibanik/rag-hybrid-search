@@ -1,1 +1,23 @@
-package com.ragpipeline.controller;import com.ragpipeline.model.*;import com.ragpipeline.service.*;import jakarta.validation.Valid;import lombok.RequiredArgsConstructor;import org.springframework.web.bind.annotation.*;import java.util.*;@RestController @RequestMapping("/api/v1/query") @RequiredArgsConstructor public class QueryController{private final QdrantHybridRetrievalService retrieval;private final GenerationService generation;private final CitationVerificationService verifier;@PostMapping("/ask")public QueryResponse ask(@Valid @RequestBody QueryRequest r){List<RetrievedChunk> cs=retrieval.retrieve(r.getQuestion(),r.getRetrievalMode());String answer=generation.generate(r.getQuestion(),cs);List<Citation> cites=verifier.verify(answer,generation.citations(answer,cs),cs);double avg=cs.stream().mapToDouble(RetrievedChunk::getRerankerScore).average().orElse(0),verified=cites.stream().filter(Citation::isVerified).count();return QueryResponse.builder().answer(answer).retrievalMode(r.getRetrievalMode()).retrievedChunks(cs).citations(cites).confidence(ConfidenceScore.builder().averageRerankerScore(avg).citationVerificationRate(cites.isEmpty()?0:(double)verified/cites.size()).retrievedChunks(cs.size()).score((avg+(cites.isEmpty()?0:(double)verified/cites.size()))/2).build()).build();}}
+package com.ragpipeline.controller;
+
+import com.ragpipeline.model.QueryRequest;
+import com.ragpipeline.model.QueryResponse;
+import com.ragpipeline.service.GenerationService;
+import com.ragpipeline.service.QdrantHybridRetrievalService;
+import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
+import org.springframework.web.bind.annotation.*;
+
+@RestController
+@RequestMapping("/api/v1/query")
+@RequiredArgsConstructor
+public class QueryController {
+    private final QdrantHybridRetrievalService retrieval;
+    private final GenerationService generation;
+
+    @PostMapping("/ask")
+    public QueryResponse ask(@Valid @RequestBody QueryRequest request) {
+        return generation.generateFromChunks(request,
+                retrieval.retrieve(request.getQuestion(), request.getRetrievalMode()));
+    }
+}

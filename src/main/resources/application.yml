@@ -21,12 +21,13 @@ bge:
   m3: { model-path: ./models/bge-m3/model.onnx, tokenizer-path: ./models/bge-m3/tokenizer.json, max-length: 8192 }
   reranker: { model-path: ./models/bge-reranker-v2-m3/model.onnx, tokenizer-path: ./models/bge-reranker-v2-m3/tokenizer.json, max-length: 512 }
 rag:
-  chunking: { default-strategy: RECURSIVE, fixed-size: 512, overlap: 64 }
+  chunking: { default-strategy: RECURSIVE, fixed-size: 512, overlap: 64, semantic-similarity-threshold: 0.62 }
   retrieval: { hybrid-top-k: 20, reranker-top-k: 5, dense-weight: 0.7, sparse-weight: 0.3 }
   generation:
     max-context-chunks: 3
     min-reranker-score: 0.30
     relative-reranker-score: 0.35
     citation-verification-enabled: true
+    hard-abstention-score: 0.30
 kafka: { topics: { ingestion-requests: rag.ingestion.requests, ingestion-results: rag.ingestion.results } }
 server: { port: 8080 }

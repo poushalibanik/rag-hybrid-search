@@ -4,6 +4,7 @@ import com.ragpipeline.model.*;
 import dev.langchain4j.model.chat.ChatLanguageModel;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.beans.factory.annotation.Value;
 
 import java.util.*;
 
@@ -13,8 +14,13 @@ public class GenerationService {
 
     private final ChatLanguageModel model;
     private final CitationVerificationService verifier;
+    @Value("${rag.generation.hard-abstention-score:0.30}")
+    double hardAbstentionScore;
 
     public String generate(String question, List<RetrievedChunk> chunks) {
+        if (chunks == null || chunks.isEmpty() || chunks.getFirst().getRerankerScore() < hardAbstentionScore) {
+            return "I do not know based on the indexed documents.";
+        }
         StringBuilder context = new StringBuilder();
         for (int i = 0; i < chunks.size(); i++) {
             context.append("\n[").append(i + 1).append("] ").append(chunks.get(i).getContent());
@@ -62,7 +68,8 @@ public class GenerationService {
                         .averageRerankerScore(avg)
                         .citationVerificationRate(rate)
                         .retrievedChunks(chunks.size())
-                        .score((avg + rate) / 2.0)
+                        // Confidence is intentionally zero for an abstention: citation scores do not make an unsupported answer trustworthy.
+                        .score(answer.equals("I do not know based on the indexed documents.") ? 0.0 : (avg + rate) / 2.0)
                         .build())
                 .build();
     }
