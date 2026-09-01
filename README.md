@@ -146,6 +146,42 @@ The following manual tests were completed against the local environment:
 7. Uploaded the same semantic test file twice. The second request returned the same document ID, confirming idempotent ingestion and no duplicate chunk creation.
 8. Tested an unsupported question and confirmed the application abstains with `I do not know based on the indexed documents.`
 
+### Noisy multi-document retrieval scenarios
+
+The evaluation corpus deliberately includes an authoritative current TechCorp handbook alongside a historical TechCorp release announcement, a non-authoritative support FAQ, external Acme competitor policies, and generic training material. These are *noisy* because they contain overlapping terminology, plausible but conflicting values, and historical guidance that should not answer a current-policy question.
+
+#### Scenario 1 — company and policy disambiguation
+
+Question: *Under the current TechCorp policy, what is the full-refund window for an initial subscription purchase?*
+
+The expected source is the current TechCorp handbook: a **14-day** full-refund window. This scenario checks that the system identifies the requested company and policy despite refund-related FAQ and Acme competitor content.
+
+![Scenario 1 — company and policy disambiguation](docs/images/scenario-1-company-policy-disambiguation.png)
+
+#### Scenario 2 — current policy versus old TechCorp guidance
+
+Question: *What are TechCorp's current production deployment hours and canary rollout settings?*
+
+The expected source is the current handbook: **Monday–Thursday, 10:00–16:00 UTC**, with a **5% canary for 30 minutes**. The initial noisy-corpus result shows historical and external documents competing in the retrieved context.
+
+![Scenario 2 — before authority-aware filtering](docs/images/scenario-2-current-vs-historical-before-filtering.png)
+
+After authority-aware context filtering and reindexing, the same query retrieves only the current authoritative handbook section.
+
+![Scenario 2 — after authority-aware filtering](docs/images/scenario-2-current-vs-historical-after-filtering.png)
+
+#### Scenario 3 — exact security policy amid conflicting competitor content
+
+Question: *For TechCorp admin accounts, how many failed login attempts cause lockout and how is the account unlocked?*
+
+The expected result is **three failed attempts**, followed by a manual unlock approved by the IT Security team; admin accounts have **no automatic unlock**. This distinguishes the authoritative TechCorp security policy from conflicting competitor account-lockout values.
+
+![Scenario 3 — exact security policy](docs/images/scenario-3-security-policy-conflict.png)
+
+#### Scenario 4 — privacy terminology ambiguity
+
+This scenario tests a question about TechCorp customer-data retention against generic privacy/training material and checks that the response uses the authoritative `4.1 Customer Data Retention` section. The query was tested manually; add its result screenshot here when available to complete the visual evidence.
+
 Run the automated test suite before committing changes:
 
 ```bash
