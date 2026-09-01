@@ -17,6 +17,71 @@ A local Java 21 / Spring Boot Retrieval-Augmented Generation (RAG) application. 
 - Low-confidence abstention: unsupported or weakly retrieved questions return `I do not know based on the indexed documents.`
 - Evaluation endpoints for retrieval MRR@5, Recall@20, answer correctness, faithfulness, and citation accuracy.
 
+## High-level architecture
+
+```mermaid
+flowchart TB
+    User[User / Client]
+    Swagger[Swagger UI]
+
+    subgraph App["Spring Boot RAG Application"]
+        API[REST Controllers]
+        Ingest[Document Ingestion Service]
+        Query[Query Service]
+        Eval[Evaluation Service]
+        Parse[Apache Tika Parser]
+        Meta[Metadata and Authority Classification]
+        Jobs[Ingestion Job Tracking]
+        Chunk[Chunking Service<br/>Recursive / Fixed / Semantic]
+        Embed[BGE-M3 Embedding Service<br/>Dense + Sparse]
+        Retrieve[Hybrid Retrieval Service<br/>Dense / Sparse / RRF]
+        Rerank[BGE Reranker]
+        Generate[Generation Service]
+        Verify[Citation Verification]
+    end
+
+    subgraph LocalServices["Local Infrastructure"]
+        Postgres[(PostgreSQL<br/>Documents · Chunks · Jobs · Evaluation Cases)]
+        Kafka[(Kafka)]
+        Qdrant[(Qdrant<br/>Dense + Sparse Vectors)]
+        Ollama[Ollama / Qwen3]
+    end
+
+    User --> Swagger
+    User --> API
+    Swagger --> API
+    API -->|Upload document| Ingest
+    Ingest --> Parse --> Meta --> Postgres
+    Ingest --> Jobs --> Postgres
+    Ingest -->|Queue ingestion job| Kafka
+    Kafka -->|Consume job| Chunk
+    Chunk -->|Chunk metadata| Postgres
+    Chunk --> Embed -->|Vectors + source metadata| Qdrant
+    Embed -->|Update job status| Postgres
+    API -->|Question| Query
+    Query --> Embed -->|Query vectors| Retrieve
+    Retrieve -->|Authority-aware hybrid search| Qdrant
+    Retrieve --> Rerank --> Generate --> Ollama
+    Generate --> Verify -->|Cited answer + confidence| API
+    API --> Eval
+    Eval --> Retrieve
+    Eval --> Rerank
+    Eval --> Ollama
+    Eval --> Postgres
+```
+
+### How the flow works
+
+1. **Upload:** A client uploads a document through Swagger UI or `POST /api/v1/documents/ingest`.
+2. **Parse and register:** Apache Tika extracts text. The application records the document, its content hash, authority metadata, and a durable ingestion job in PostgreSQL. Identical content returns the existing document instead of being indexed twice.
+3. **Queue and index:** The application places the job on Kafka. A consumer parses the job, chunks the text according to the selected strategy, stores chunk metadata in PostgreSQL, generates BGE-M3 dense and sparse vectors, and upserts them to Qdrant.
+4. **Track completion:** Successful jobs become `INDEXED`. Failures retry three times with exponential backoff; an exhausted job becomes `FAILED` and records its error.
+5. **Ask a question:** A client sends a question to `POST /api/v1/query/ask`. BGE-M3 converts the question into dense and sparse query vectors.
+6. **Retrieve and filter:** Qdrant retrieves candidate chunks using dense-only, sparse-only, or RRF hybrid search. Authority-aware filtering prevents current-policy questions from using historical, external, or reference documents when an authoritative current source is required.
+7. **Rerank and generate:** The BGE reranker selects the strongest context. Qwen3, running through Ollama, produces an answer grounded only in that context.
+8. **Cite or abstain:** The application verifies citations against retrieved chunks and returns the answer, sources, retrieved chunks, and confidence. If no chunk clears the relevance gate, it returns `I do not know based on the indexed documents.`
+9. **Evaluate:** The evaluation APIs use the stored test cases to compare retrieval modes and measure MRR@5, Recall@20, correctness, faithfulness, and citation accuracy.
+
 ## Requirements
 
 - Java 21
