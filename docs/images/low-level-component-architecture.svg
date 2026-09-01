@@ -1,0 +1,52 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="1020" viewBox="0 0 1600 1020" role="img" aria-labelledby="title desc">
+  <title id="title">RAG Hybrid Search low-level component architecture</title>
+  <desc id="desc">Relationships between controllers, services, repositories, Kafka processing, model runtime, and databases.</desc>
+  <defs>
+    <marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto"><path d="M0,0 L0,6 L9,3 z" fill="#475569"/></marker>
+    <style>text{font-family:Arial,Helvetica,sans-serif;fill:#172554}.title{font-size:25px;font-weight:700}.subtitle{font-size:14px;fill:#475569}.head{font-size:16px;font-weight:700}.label{font-size:13px;font-weight:700}.detail{font-size:11px;fill:#475569}.group{stroke-width:1.5;rx:14;ry:14}.box{stroke-width:1.25;rx:8;ry:8}.a{stroke:#475569;stroke-width:1.65;fill:none;marker-end:url(#arrow)}.d{stroke:#64748b;stroke-width:1.4;stroke-dasharray:5 4;fill:none;marker-end:url(#arrow)}</style>
+  </defs>
+  <rect width="1600" height="1020" fill="#f8fafc"/>
+  <text x="44" y="48" class="title">RAG Hybrid Search — Low-Level Component Architecture</text>
+  <text x="44" y="72" class="subtitle">Controller, service, repository, messaging, model-runtime, and persistence responsibilities</text>
+
+  <rect class="group" x="36" y="104" width="270" height="570" fill="#eff6ff" stroke="#93c5fd"/><text x="56" y="136" class="head">Web layer</text>
+  <rect class="box" x="58" y="164" width="226" height="75" fill="#fff" stroke="#60a5fa"/><text x="119" y="193" class="label">DocumentController</text><text x="76" y="215" class="detail">ingest · list · status · reindex</text>
+  <rect class="box" x="58" y="266" width="226" height="65" fill="#fff" stroke="#60a5fa"/><text x="130" y="293" class="label">QueryController</text><text x="90" y="314" class="detail">POST /query/ask</text>
+  <rect class="box" x="58" y="358" width="226" height="65" fill="#fff" stroke="#60a5fa"/><text x="132" y="385" class="label">EvalController</text><text x="83" y="406" class="detail">run · compare · retrieval · debug</text>
+  <rect class="box" x="58" y="490" width="226" height="65" fill="#fff" stroke="#60a5fa"/><text x="105" y="517" class="label">GlobalExceptionHandler</text><text x="82" y="538" class="detail">consistent HTTP error response</text>
+  <path class="d" d="M171 490V440H171V423"/><path class="d" d="M171 490V440H171V331"/>
+
+  <rect class="group" x="354" y="104" width="430" height="840" fill="#f0fdf4" stroke="#86efac"/><text x="374" y="136" class="head">Application services</text>
+  <rect class="box" x="378" y="164" width="180" height="94" fill="#fff" stroke="#22c55e"/><text x="406" y="193" class="label">DocumentIngestion</text><text x="434" y="211" class="label">Service</text><text x="395" y="234" class="detail">Tika · hash · metadata · jobs</text>
+  <rect class="box" x="584" y="164" width="176" height="94" fill="#fff" stroke="#22c55e"/><text x="611" y="193" class="label">EmbeddingService</text><text x="601" y="215" class="detail">collection · upsert · reindex</text>
+  <rect class="box" x="378" y="306" width="180" height="82" fill="#fff" stroke="#22c55e"/><text x="412" y="335" class="label">ChunkingService</text><text x="393" y="357" class="detail">recursive · fixed · semantic</text>
+  <rect class="box" x="584" y="306" width="176" height="82" fill="#fff" stroke="#22c55e"/><text x="603" y="335" class="label">BgeM3Embedding</text><text x="622" y="357" class="detail">dense + sparse</text>
+  <rect class="box" x="378" y="446" width="180" height="94" fill="#fff" stroke="#22c55e"/><text x="399" y="475" class="label">HybridRetrieval</text><text x="419" y="493" class="label">Service</text><text x="393" y="516" class="detail">scope · Qdrant · RRF</text>
+  <rect class="box" x="584" y="446" width="176" height="94" fill="#fff" stroke="#22c55e"/><text x="605" y="475" class="label">BgeRerankerService</text><text x="602" y="499" class="detail">cross-encoder ranking</text>
+  <rect class="box" x="378" y="594" width="180" height="94" fill="#fff" stroke="#22c55e"/><text x="414" y="623" class="label">GenerationService</text><text x="394" y="647" class="detail">prompt · abstention · response</text>
+  <rect class="box" x="584" y="594" width="176" height="94" fill="#fff" stroke="#22c55e"/><text x="597" y="623" class="label">CitationVerification</text><text x="639" y="641" class="label">Service</text><text x="618" y="664" class="detail">claim/source scoring</text>
+  <rect class="box" x="378" y="752" width="382" height="82" fill="#fff" stroke="#22c55e"/><text x="521" y="781" class="label">EvalService</text><text x="425" y="803" class="detail">MRR@5 · Recall@20 · correctness · faithfulness · citation accuracy</text>
+
+  <rect class="group" x="832" y="104" width="300" height="840" fill="#fefce8" stroke="#facc15"/><text x="852" y="136" class="head">Messaging and persistence</text>
+  <rect class="box" x="856" y="164" width="252" height="72" fill="#fff" stroke="#eab308"/><text x="920" y="192" class="label">IngestionProducer</text><text x="908" y="213" class="detail">KafkaTemplate publisher</text>
+  <rect class="box" x="856" y="274" width="252" height="92" fill="#fff" stroke="#eab308"/><text x="916" y="303" class="label">IngestionConsumer</text><text x="889" y="325" class="detail">@KafkaListener · retry · DLT</text><text x="904" y="344" class="detail">idempotent re-upsert</text>
+  <rect class="box" x="856" y="432" width="252" height="60" fill="#fff" stroke="#eab308"/><text x="921" y="458" class="label">DocumentRepository</text><text x="923" y="477" class="detail">JPA interface</text>
+  <rect class="box" x="856" y="520" width="252" height="60" fill="#fff" stroke="#eab308"/><text x="932" y="546" class="label">ChunkRepository</text><text x="923" y="565" class="detail">JPA interface</text>
+  <rect class="box" x="856" y="608" width="252" height="60" fill="#fff" stroke="#eab308"/><text x="905" y="634" class="label">IngestionJobRepository</text><text x="923" y="653" class="detail">JPA interface</text>
+  <rect class="box" x="856" y="696" width="252" height="60" fill="#fff" stroke="#eab308"/><text x="911" y="722" class="label">EvalDatasetRepository</text><text x="923" y="741" class="detail">JPA interface</text>
+
+  <rect class="group" x="1180" y="104" width="384" height="840" fill="#fff7ed" stroke="#fdba74"/><text x="1200" y="136" class="head">Managed infrastructure beans</text>
+  <rect class="box" x="1204" y="164" width="336" height="72" fill="#fff" stroke="#f97316"/><text x="1316" y="192" class="label">Kafka</text><text x="1272" y="213" class="detail">ingestion topic · retry topics · DLT</text>
+  <rect class="box" x="1204" y="274" width="336" height="72" fill="#fff" stroke="#f97316"/><text x="1300" y="302" class="label">PostgreSQL</text><text x="1240" y="323" class="detail">documents · chunks · jobs · eval cases</text>
+  <rect class="box" x="1204" y="384" width="336" height="72" fill="#fff" stroke="#f97316"/><text x="1320" y="412" class="label">QdrantClient</text><text x="1267" y="433" class="detail">named dense + sparse vectors</text>
+  <rect class="box" x="1204" y="494" width="336" height="92" fill="#fff" stroke="#f97316"/><text x="1294" y="522" class="label">ONNX Runtime</text><text x="1252" y="544" class="detail">BGE-M3 session + tokenizer</text><text x="1230" y="563" class="detail">BGE reranker session + tokenizer</text>
+  <rect class="box" x="1204" y="624" width="336" height="72" fill="#fff" stroke="#f97316"/><text x="1276" y="652" class="label">ChatLanguageModel</text><text x="1289" y="673" class="detail">Ollama / Qwen3</text>
+
+  <path class="a" d="M284 201H378"/><path class="a" d="M284 298H378V493H378"/><path class="a" d="M284 390H378V793"/>
+  <path class="a" d="M558 211H832V200H856"/><path class="a" d="M558 230H856V462"/><path class="a" d="M558 247H856V638"/>
+  <path class="a" d="M1108 200H1204"/><path class="a" d="M1204 200H1160V320H1108"/><path class="a" d="M856 320H760V347"/><path class="a" d="M558 347H584"/><path class="a" d="M760 347H856V550"/>
+  <path class="a" d="M558 493H584"/><path class="a" d="M558 493H856V414H1204"/><path class="a" d="M760 493H1204V540"/><path class="a" d="M558 641H584"/><path class="a" d="M558 641H1204V660"/>
+  <path class="a" d="M1108 462H1204V310"/><path class="a" d="M1108 550H1204V310"/><path class="a" d="M1108 638H1204V310"/><path class="a" d="M1108 726H1204V310"/>
+  <path class="d" d="M584 793H558V540"/><path class="d" d="M584 793H558V688"/><path class="d" d="M760 793H856V726"/><path class="d" d="M760 793H856V550"/>
+  <text x="44" y="984" class="detail">Solid arrows show direct runtime dependencies; dashed arrows show evaluation reuse. Spring configuration creates the ONNX, Qdrant, and Ollama beans at startup.</text>
+</svg>

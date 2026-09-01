@@ -19,6 +19,9 @@ A local Java 21 / Spring Boot Retrieval-Augmented Generation (RAG) application. 
 
 ## High-level architecture
 
+![High-level architecture diagram](docs/images/high-level-architecture.png)
+
+<!-- Editable Mermaid source for the rendered diagram:
 ```mermaid
 flowchart TB
     User[User / Client]
@@ -69,6 +72,7 @@ flowchart TB
     Eval --> Ollama
     Eval --> Postgres
 ```
+-->
 
 ### How the flow works
 
@@ -81,6 +85,102 @@ flowchart TB
 7. **Rerank and generate:** The BGE reranker selects the strongest context. Qwen3, running through Ollama, produces an answer grounded only in that context.
 8. **Cite or abstain:** The application verifies citations against retrieved chunks and returns the answer, sources, retrieved chunks, and confidence. If no chunk clears the relevance gate, it returns `I do not know based on the indexed documents.`
 9. **Evaluate:** The evaluation APIs use the stored test cases to compare retrieval modes and measure MRR@5, Recall@20, correctness, faithfulness, and citation accuracy.
+
+## Low-level component diagram
+
+![Low-level component architecture diagram](docs/images/low-level-component-architecture.svg)
+
+<!-- Editable Mermaid source for the rendered diagram:
+```mermaid
+flowchart LR
+    subgraph Web["Web layer"]
+        DC[DocumentController]
+        QC[QueryController]
+        EC[EvalController]
+        GEH[GlobalExceptionHandler]
+    end
+
+    subgraph Ingestion["Ingestion components"]
+        DIS[DocumentIngestionService]
+        IP[IngestionProducer]
+        IC[IngestionConsumer]
+        CS[ChunkingService]
+        ES[EmbeddingService]
+    end
+
+    subgraph Querying["Query components"]
+        QHRS[QdrantHybridRetrievalService]
+        BGE[BgeM3EmbeddingService]
+        RR[BgeRerankerService]
+        GS[GenerationService]
+        CVS[CitationVerificationService]
+    end
+
+    subgraph Evaluation["Evaluation components"]
+        EVS[EvalService]
+    end
+
+    subgraph Persistence["Persistence layer"]
+        DR[DocumentRepository]
+        CR[ChunkRepository]
+        JR[IngestionJobRepository]
+        ER[EvalDatasetRepository]
+        PG[(PostgreSQL)]
+    end
+
+    subgraph Runtime["External runtime dependencies"]
+        KP[Kafka Producer]
+        KC[Kafka Consumer]
+        QCDB[Qdrant Client]
+        ONNX[ONNX Sessions + Tokenizers]
+        LLM[ChatLanguageModel<br/>Ollama / Qwen3]
+    end
+
+    DC --> DIS
+    DC --> ES
+    DC --> DR
+    DC --> JR
+    QC --> QHRS
+    QC --> GS
+    EC --> EVS
+    GEH -.handles.-> DC
+    GEH -.handles.-> QC
+    GEH -.handles.-> EC
+
+    DIS --> DR
+    DIS --> JR
+    DIS --> IP --> KP
+    KC --> IC
+    IC --> DIS
+    IC --> CS --> BGE
+    IC --> CR
+    IC --> ES
+    ES --> CR
+    ES --> BGE
+    ES --> QCDB
+
+    QHRS --> BGE
+    QHRS --> RR
+    QHRS --> CR
+    QHRS --> ES
+    QHRS --> QCDB
+    GS --> LLM
+    GS --> CVS --> RR
+    EVS --> ER
+    EVS --> CR
+    EVS --> QHRS
+    EVS --> GS
+    EVS --> RR
+    EVS --> LLM
+
+    DR --> PG
+    CR --> PG
+    JR --> PG
+    ER --> PG
+    BGE --> ONNX
+    RR --> ONNX
+```
+-->
 
 ## Requirements
 
