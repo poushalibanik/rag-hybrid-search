@@ -17,6 +17,25 @@ A local Java 21 / Spring Boot Retrieval-Augmented Generation (RAG) application. 
 - Low-confidence abstention: unsupported or weakly retrieved questions return `I do not know based on the indexed documents.`
 - Evaluation endpoints for retrieval MRR@5, Recall@20, answer correctness, faithfulness, and citation accuracy.
 
+## Technology stack
+
+| Area | Technology used |
+| --- | --- |
+| Language and build | Java 21, Gradle |
+| Application framework | Spring Boot 3.3.4: Web MVC, Validation, Data JPA, Actuator, and Spring Kafka |
+| LLM integration | LangChain4j 0.36.0 with the LangChain4j Ollama integration |
+| Generation model | Qwen3 (`qwen3:8b`) served locally by Ollama |
+| Embeddings and reranking | BGE-M3 and BGE Reranker ONNX models, ONNX Runtime, and DJL Hugging Face Tokenizers |
+| Vector database | Qdrant Java gRPC client with named dense and sparse vectors |
+| Relational database | PostgreSQL with Hibernate/JPA and Flyway migrations |
+| Asynchronous processing | Apache Kafka with Spring Kafka retries and dead-letter handling |
+| Document parsing | Apache Tika Core and Tika Parsers Standard Package |
+| API documentation | Springdoc OpenAPI / Swagger UI |
+| Serialization and boilerplate | Jackson and Lombok |
+| Test dependencies | JUnit 5 through Spring Boot Test, Spring Kafka Test, and Testcontainers for PostgreSQL/Kafka |
+
+The project uses **LangChain4j** for Java-to-Ollama LLM integration. It does **not** use Python LangChain or LangGraph; workflow orchestration is implemented with Spring services and Kafka.
+
 ## High-level architecture
 
 ![High-level architecture diagram](docs/images/high-level-architecture.png)
