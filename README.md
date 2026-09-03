@@ -254,7 +254,6 @@ The current TechCorp test dataset contains 20 cases. Previous baseline results w
 - Authentication and role-based authorization.
 - Secrets outside `application.yml` — the database password is currently hardcoded.
 - File-size/type limits, antivirus scanning, and upload rate limits.
-- DTOs instead of returning JPA entities directly from APIs.
 - Production observability: structured logs, metrics, alerts, and tracing.
 - Kafka transactional outbox/idempotent consumer design for database–Kafka consistency.
 - Better automated test coverage, including failure/retry, duplicate-upload, and no-answer integration tests.
