@@ -241,6 +241,8 @@ Run the automated test suite before committing changes:
 ./gradlew clean test
 ```
 
+The test task also generates a JaCoCo report at `build/reports/jacoco/test/html/index.html`. Coverage is reported for visibility; the build is not blocked by an arbitrary global percentage target.
+
 Run the retrieval regression evaluation after changing chunking, metadata filters, embedding models, or retrieval settings:
 
 ```bash
